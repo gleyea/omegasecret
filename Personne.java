@@ -31,5 +31,4 @@ public class Personne extends Agent {
 		return numberOfSecret;
 	}
 	
-
 }
