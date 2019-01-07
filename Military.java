@@ -25,7 +25,7 @@ import java.text.NumberFormat;
 
 public class Military extends NPC{
 
-	private double probaMilitary = 0.12;
+	private double probaMilitary = 0.020;
 	private int numberSecretMilitary = 20;
 	
 	public Military () {

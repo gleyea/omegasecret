@@ -25,7 +25,7 @@ import java.text.NumberFormat;
 
 public class Politician extends NPC{
 
-	private double probaPolitician = 0.12;
+	private double probaPolitician = 0.08;
 	private int numberSecretPolitician = 100;
 	
 	public Politician () {

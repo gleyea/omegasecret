@@ -25,7 +25,7 @@ import java.text.NumberFormat;
 
 public class Civil extends NPC{
 
-	private double probaCivil = 0.12;
+	private double probaCivil = 0.01;
 	private int numberSecretCivil = 10;
 	
 	public Civil () {
