@@ -33,6 +33,7 @@ public class Systeme extends Agent {
 
 	
 	private int numberOfPeople = 100;
+	private int initialNumberOfSpy = 1;
 	private int numberOfSpy=1;
 	private int numberOfCivil=50;
 	private int numberOfMilitary=20;
@@ -52,8 +53,9 @@ public class Systeme extends Agent {
     private int stop = 0;
     private boolean guestsCreation = true;
     private boolean spyWait = false;
-    private int wins = 0;
+    private double wins = 0;
     private int numberOfTries = 0;
+    private boolean waitToReset = false;
 
 	
     protected Vector guestList = new Vector();    // NPCs
@@ -100,7 +102,7 @@ public class Systeme extends Agent {
             // create N guest agents
             for (int i = 0;  i < numberOfCivil;  i++) {
                     // create a new agent
-                String localName = "Civil_"+i;
+                String localName = "Civil_"+i+"_"+numberOfTries;
                 AgentController guest = container.createNewAgent(localName, "omegasecret.Civil", null);
                 guest.start();
                 guestList.add( new AID(localName, AID.ISLOCALNAME) );
@@ -112,7 +114,7 @@ public class Systeme extends Agent {
             }
             for (int i = 0;  i < numberOfMilitary;  i++) {
                         // create a new agent
-                String localName = "Military_"+i;
+                String localName = "Military_"+i+"_"+numberOfTries;
                 AgentController guest = container.createNewAgent(localName, "omegasecret.Military", null);
                 guest.start();
                 guestList.add( new AID(localName, AID.ISLOCALNAME) );
@@ -125,7 +127,7 @@ public class Systeme extends Agent {
                     
             for (int i = 0;  i < numberOfSoldier;  i++) {
                         // create a new agent
-                String localName = "Soldier_"+i;
+                String localName = "Soldier_"+i+"_"+numberOfTries;
                 AgentController guest = container.createNewAgent(localName, "omegasecret.Soldier", null);
                 guest.start();
                 guestList.add( new AID(localName, AID.ISLOCALNAME) );
@@ -138,7 +140,7 @@ public class Systeme extends Agent {
                     
             for (int i = 0;  i < numberOfPolitician;  i++) {
                         // create a new agent
-                String localName = "Politician_"+i;
+                String localName = "Politician_"+i+"_"+numberOfTries;
                 AgentController guest = container.createNewAgent(localName, "omegasecret.Politician", null);
                 guest.start();
                 guestList.add( new AID(localName, AID.ISLOCALNAME) );
@@ -151,7 +153,7 @@ public class Systeme extends Agent {
             
             for (int i = 0;  i < numberOfSpy;  i++) {
                 // create a new agent
-            	String localName = "Spy_"+i;
+            	String localName = "Spy_"+i+"_"+numberOfTries;
             	AgentController spy = container.createNewAgent(localName, "omegasecret.Spy", null);
             	spy.start();
             	spyList.add( new AID(localName, AID.ISLOCALNAME) );
@@ -188,39 +190,44 @@ public class Systeme extends Agent {
                                     	numberOfSpy--;
                                     	if (numberOfSpy == 0) {
                                         	System.out.println("Tous les espions ont été trouvés en : " + tour + "tours!");
-                                        	endSecret();
-                                        	if (numberOfTries < 30) {
-                                            	retry();
-                                            	moyenneTours+=tour;
+                                        	if (numberOfTries < 30) 
+                                        	{
                                             	numberOfTries++;
-                                        	}
-                                        	else {
+                                    			moyenneTours+=tour;
+                                            	endSecret(true);
+                                          	}
+                                        	else 
+                                        	{
+                                        		endSecret(false);
                                         		System.out.println("Nombre de tours total : " + moyenneTours/30);
-                                        		System.out.println("Pourcentage de victoires : " + wins/30);
+                                        		System.out.println("Pourcentage de victoires des espions : " +  100 * (wins/30) + "%");
                                         	}
                                     	}
                                     }
                                     else if (OMEGAFOUND.contentEquals((msg.getContent()))) {
                                     	System.out.println("Le secret OMEGA a été trouvé en : " + tour + "tours!");
-                                    	endSecret();
-                                    	if (numberOfTries < 30) {
-                                        	retry();
-                                        	wins++;
-                                        	numberOfTries++;
+                                    	if (numberOfTries < 30) 
+                                    	{
+                                			numberOfTries++;
+                                			wins++;
+                                			moyenneTours+=tour;
+                                        	endSecret(true);
                                     	}
-                                    	else {
-                                    		System.out.println("Nombre de tours total : " + moyenneTours/30);
-                                    		System.out.println("Pourcentage de victoires : " + wins/30);
+                                        else
+                                        {
+                                        	endSecret(false);
+                                        	System.out.println("Nombre de tours total : " + moyenneTours/30);
+                                        	System.out.println("Pourcentage de victoires des espions : " +  100 * (wins/30) + "%");
                                     	}
-
                                     }
-                                    else if (msg.getContent().startsWith("next")) {
+                                    else if (msg.getContent().startsWith("next") && guestList.size() != 0) 
+                                    {
                                 		conversation(msg.getSender());
                                         tour++;
-                                        }
-                                		
-                                     }
-                                else {
+                                    }
+                                }
+                                else 
+                                {
                                     // if no message is arrived, block the behaviour
                                     block();
                                 }
@@ -235,13 +242,18 @@ public class Systeme extends Agent {
     }
 	
     public void retry() {
+    	numberOfSpy = initialNumberOfSpy;
+    	System.out.println(numberOfTries);
+    	guestList.clear();
+    	spyList.clear();
+    	originalList.clear();
     	tour = 0;
+		PlatformController container = getContainerController(); // get a container controller for creating new agents
     	try {
-    		PlatformController container = getContainerController(); // get a container controller for creating new agents
     		// create N guest agents
     		for (int i = 0;  i < numberOfCivil;  i++) {
                 // create a new agent
-    			String localName = "Civil_"+i;
+    			String localName = "Civil_"+i+"_"+numberOfTries;
     			AgentController guest = container.createNewAgent(localName, "omegasecret.Civil", null);
     			guest.start();
     			guestList.add( new AID(localName, AID.ISLOCALNAME) );
@@ -253,7 +265,7 @@ public class Systeme extends Agent {
     		}
     		for (int i = 0;  i < numberOfMilitary;  i++) {
                     // create a new agent
-    			String localName = "Military_"+i;
+    			String localName = "Military_"+i+"_"+numberOfTries;
     			AgentController guest = container.createNewAgent(localName, "omegasecret.Military", null);
     			guest.start();
     			guestList.add( new AID(localName, AID.ISLOCALNAME) );
@@ -266,7 +278,7 @@ public class Systeme extends Agent {
                 
     		for (int i = 0;  i < numberOfSoldier;  i++) {
                     // create a new agent
-    			String localName = "Soldier_"+i;
+    			String localName = "Soldier_"+i+"_"+numberOfTries;
     			AgentController guest = container.createNewAgent(localName, "omegasecret.Soldier", null);
     			guest.start();
     			guestList.add( new AID(localName, AID.ISLOCALNAME) );
@@ -279,7 +291,7 @@ public class Systeme extends Agent {
                 
     		for (int i = 0;  i < numberOfPolitician;  i++) {
                     // create a new agent
-    			String localName = "Politician_"+i;
+    			String localName = "Politician_"+i+"_"+numberOfTries;
     			AgentController guest = container.createNewAgent(localName, "omegasecret.Politician", null);
     			guest.start();
     			guestList.add( new AID(localName, AID.ISLOCALNAME) );
@@ -292,13 +304,12 @@ public class Systeme extends Agent {
         
     		for (int i = 0;  i < numberOfSpy;  i++) {
     			// create a new agent
-    			String localName = "Spy_"+i;
+    			String localName = "Spy_"+i+"_"+numberOfTries;
     			AgentController spy = container.createNewAgent(localName, "omegasecret.Spy", null);
     			spy.start();
     			spyList.add( new AID(localName, AID.ISLOCALNAME) );
     			//Agent guest = new GuestAgent();
     			//guest.doStart( "guest_" + i );
-
     		}
     	}
         catch (Exception e) {
@@ -329,6 +340,7 @@ public class Systeme extends Agent {
 	
 	public void conversation(AID spySender) {
 		int chosenGuest = (int) (Math.random() * (guestList.size()-1));
+		System.out.println(guestList.size());
 		AID spy = (AID) guestList.get(chosenGuest);
         ACLMessage guestId = new ACLMessage( ACLMessage.INFORM );
         guestId.setContent( spy.getName() );
@@ -342,7 +354,7 @@ public class Systeme extends Agent {
 	public void terminateSysteme() {
         try {
             if (!guestList.isEmpty() || !spyList.isEmpty()) {
-                endSecret();
+                endSecret(false);
             }
 
             DFService.deregister( this );
@@ -354,7 +366,7 @@ public class Systeme extends Agent {
         }
 	}
 	
-	public void endSecret() {
+	public void endSecret(boolean result) {
         // send a message to all guests to tell them to leave
         for (Iterator i = originalList.iterator();  i.hasNext();  ) {
             ACLMessage msg = new ACLMessage( ACLMessage.INFORM );
@@ -364,7 +376,6 @@ public class Systeme extends Agent {
 
             send(msg);
         }
-
         for (Iterator i = spyList.iterator();  i.hasNext();  ) {
             ACLMessage msg = new ACLMessage( ACLMessage.INFORM );
             msg.setContent( GOODBYE );
@@ -375,5 +386,8 @@ public class Systeme extends Agent {
         guestList.clear();
         originalList.clear();
         spyList.clear();
+        if (result == true) {
+        	retry();
+        }
 	}
 }

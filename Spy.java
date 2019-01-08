@@ -64,9 +64,11 @@ public class Spy extends Personne {
                                     if (msg.getContent().startsWith("Pong")) {
                                     	String numberOfSecret_str = msg.getContent().substring( msg.getContent().indexOf( " " ) + 1 );
                                     	numberOfSecret += Integer.parseInt(numberOfSecret_str);
-                                    	Update();
-                                    	continueAsking();
+                                    	if(!Update()); 
+                                    	{
+                                        	continueAsking();
                                     	}
+                                    }
                                     else if (!msg.getContent().startsWith( "true" ) && !msg.getContent().startsWith( "false" )){
                                         // I am being introduced to another guest
                                     	searchSecret(msg.getContent());
@@ -88,7 +90,8 @@ public class Spy extends Personne {
 
     }
     
-	public void Update() {
+	public boolean Update() {
+		boolean result = false;
 		probaMultiplier = 1* (1+(numberOfSecret/sommeDesSecrets));
 		double test = Math.random();
 		if (test <= 0.5) {
@@ -98,8 +101,10 @@ public class Spy extends Personne {
 	        ACLMessage ask = new ACLMessage( ACLMessage.INFORM );
             ask.setContent( Systeme.OMEGAFOUND );
 	        ask.addReceiver( system );
-	        send( ask );  
+	        send( ask ); 
+	        result = true;
 		}
+		return result;
 	}
 	
     public void continueAsking() {
